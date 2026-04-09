@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神椿TCG artist確率ツール</title>
+<title>神椿TCG 確率ツール</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #0f0f1a;
+  background: linear-gradient(180deg, #0f0f1a, #1a1a2e);
   color: white;
 }
 
@@ -20,38 +22,52 @@ body {
 }
 
 h1 {
+  font-size: 22px;
   text-align: center;
-}
-
-.card {
-  background: #1c1c2a;
-  padding: 15px;
-  border-radius: 12px;
   margin-bottom: 15px;
 }
 
-select, input {
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 15px;
+  border-radius: 14px;
+  margin-bottom: 15px;
+}
+
+label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+input, select {
   width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
+  padding: 12px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border-radius: 10px;
   border: none;
   background: #222;
   color: white;
+  font-size: 16px;
 }
 
 button {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 14px;
+  border-radius: 12px;
   border: none;
-  background: #7b5cff;
+  background: linear-gradient(90deg, #7b5cff, #9f7bff);
   color: white;
+  font-size: 16px;
 }
 
 .result {
   font-size: 16px;
   line-height: 1.8;
+}
+
+canvas {
+  margin-top: 10px;
 }
 </style>
 </head>
@@ -63,39 +79,34 @@ button {
 <h1>神椿TCG artist確率</h1>
 
 <div class="card">
+  <label>先手 / 後手</label>
+  <select id="turn">
+    <option value="7">先手（7枚）</option>
+    <option value="8">後手（8枚）</option>
+  </select>
 
-<label>先手 / 後手</label>
-<select id="turn">
-  <option value="7">先手（7枚）</option>
-  <option value="8">後手（8枚）</option>
-</select>
+  <p>デッキ枚数：60枚（固定）</p>
 
-<p>デッキ枚数：60枚（固定）</p>
+  <label>引きたいartist</label>
+  <input type="number" id="good" value="0">
 
-<label>引きたいartist（複数選択OK）</label>
-<select id="good" multiple size="5">
-  <option value="4">花譜（4枚）</option>
-  <option value="3">理芽（3枚）</option>
-  <option value="2">春猿火（2枚）</option>
-  <option value="2">ヰ世界情緒（2枚）</option>
-  <option value="1">幸祜（1枚）</option>
-</select>
+  <label>引きたくないartist</label>
+  <input type="number" id="bad" value="0">
 
-<label>引きたくないartist（複数選択OK）</label>
-<select id="bad" multiple size="5">
-  <option value="2">被り枠A（2枚）</option>
-  <option value="1">被り枠B（1枚）</option>
-</select>
-
-<button onclick="calc()">計算する</button>
-
+  <button onclick="calc()">計算する</button>
 </div>
 
 <div class="card result" id="result">ここに結果が出る</div>
 
+<div class="card">
+  <canvas id="chart"></canvas>
+</div>
+
 </div>
 
 <script>
+let chart;
+
 function comb(n, r){
   if(r > n) return 0;
   let res = 1;
@@ -105,37 +116,73 @@ function comb(n, r){
   return res;
 }
 
-function getSelectedTotal(id){
-  let select = document.getElementById(id);
-  let total = 0;
-  for(let option of select.selectedOptions){
-    total += Number(option.value);
-  }
-  return total;
-}
-
 function calc(){
   let deck = 60;
-  let draw = +document.getElementById("turn").value;
+  let good = +document.getElementById("good").value;
+  let bad = +document.getElementById("bad").value;
+  let startDraw = +document.getElementById("turn").value;
 
-  let good = getSelectedTotal("good");
-  let bad = getSelectedTotal("bad");
+  let labels = [];
+  let goodArr = [];
+  let idealArr = [];
 
-  let total = comb(deck, draw);
+  for(let turn=0; turn<=5; turn++){
+    let draw = startDraw + turn;
 
-  let noGood = comb(deck - good, draw) / total;
-  let oneGood = (comb(good,1) * comb(deck - good, draw - 1)) / total;
-  let noBad = comb(deck - bad, draw) / total;
+    let total = comb(deck, draw);
 
-  let atLeast1 = (1 - noGood) * 100;
-  let atLeast2 = (1 - noGood - oneGood) * 100;
-  let ideal = (1 - noGood) * noBad * 100;
+    let noGood = comb(deck - good, draw) / total;
+    let noBad = comb(deck - bad, draw) / total;
+
+    let goodProb = (1 - noGood) * 100;
+    let idealProb = (1 - noGood) * noBad * 100;
+
+    labels.push("T" + turn);
+    goodArr.push(goodProb.toFixed(1));
+    idealArr.push(idealProb.toFixed(1));
+  }
 
   document.getElementById("result").innerHTML =
-    "選択したartist合計：" + good + "枚<br><br>" +
-    "1枚以上引く確率： " + atLeast1.toFixed(2) + "%<br>" +
-    "2枚以上引く確率： " + atLeast2.toFixed(2) + "%<br>" +
-    "理想（良い引いて悪い引かない）： " + ideal.toFixed(2) + "%";
+    "1枚以上引く確率： " + goodArr[0] + "%<br>" +
+    "理想（良い引いて悪い引かない）： " + idealArr[0] + "%";
+
+  if(chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("chart"), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '1枚以上',
+          data: goodArr,
+          borderWidth: 2,
+          tension: 0.3
+        },
+        {
+          label: '理想',
+          data: idealArr,
+          borderWidth: 2,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      plugins: {
+        legend: {
+          labels: { color: "white" }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: "white" }
+        },
+        y: {
+          ticks: { color: "white" }
+        }
+      }
+    }
+  });
 }
 </script>
 
