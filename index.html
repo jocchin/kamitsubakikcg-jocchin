@@ -15,7 +15,7 @@ body {
   color: #eee;
 }
 
-/* 粒子（最下層） */
+/* 粒子 */
 #particles {
   position: fixed;
   inset: 0;
@@ -23,7 +23,7 @@ body {
   pointer-events: none;
 }
 
-/* ノイズ（中間） */
+/* ノイズ */
 body::before {
   content: "";
   position: fixed;
@@ -38,7 +38,7 @@ body::before {
   opacity: 0.18;
 }
 
-/* UI（最前面） */
+/* UI前面 */
 .container, h1, .subtitle {
   position: relative;
   z-index: 2;
@@ -95,8 +95,6 @@ select, input {
 
 /* ボタン */
 button {
-  position: relative;
-  overflow: hidden;
   width: 100%;
   padding: 14px;
   border-radius: 14px;
@@ -122,14 +120,8 @@ button:active {
 }
 
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
 }
 
 .big {
@@ -141,7 +133,6 @@ button:active {
 
 <body>
 
-<!-- 粒子 -->
 <canvas id="particles"></canvas>
 
 <h1>KAMITSUBAKI TCG</h1>
@@ -150,7 +141,6 @@ button:active {
 <div class="container">
 
 <div class="card">
-
 <label>先手 / 後手</label>
 <select id="turn">
   <option value="7">先手（7枚）</option>
@@ -166,7 +156,6 @@ button:active {
 <input type="number" id="bad" value="0">
 
 <button onclick="calc()">CALCULATE</button>
-
 </div>
 
 <div class="card result" id="result">
@@ -176,7 +165,7 @@ button:active {
 </div>
 
 <script>
-// ===== 粒子（確実表示版） =====
+// ===== 粒子（最強ver） =====
 const canvas = document.getElementById("particles");
 const ctx = canvas.getContext("2d");
 
@@ -191,13 +180,13 @@ let particles = [];
 
 function init(){
   particles = [];
-  for(let i=0;i<50;i++){
+  for(let i=0;i<60;i++){
     particles.push({
       x: Math.random()*canvas.width,
       y: Math.random()*canvas.height,
       r: Math.random()*2 + 0.5,
-      vx: (Math.random()-0.5)*0.3,
-      vy: (Math.random()-0.5)*0.3
+      vx: (Math.random()-0.5)*0.1,
+      vy: -(Math.random()*0.4 + 0.1) // 上に流れる
     });
   }
 }
@@ -206,14 +195,21 @@ init();
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.fillStyle = "rgba(167,139,250,0.8)";
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.shadowColor = "rgba(255,255,255,0.8)";
+  ctx.shadowBlur = 8;
 
   particles.forEach(p=>{
     p.x += p.vx;
     p.y += p.vy;
 
-    if(p.x<0||p.x>canvas.width) p.vx*=-1;
-    if(p.y<0||p.y>canvas.height) p.vy*=-1;
+    if(p.y < 0){
+      p.y = canvas.height;
+      p.x = Math.random()*canvas.width;
+    }
+
+    if(p.x < 0) p.x = canvas.width;
+    if(p.x > canvas.width) p.x = 0;
 
     ctx.beginPath();
     ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
