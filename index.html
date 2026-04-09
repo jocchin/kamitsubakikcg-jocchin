@@ -3,28 +3,154 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神椿TCG 確率ツール（引き直し対応）</title>
+<title>神椿TCG 確率ツール</title>
+
 <style>
-body { margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:radial-gradient(circle at 20% 0%,#1a1a2e,#05050a 70%); color:#eee; }
-* { box-sizing:border-box; }
-h1 { text-align:center; margin:30px 0 10px; font-size:24px; color:#d4ccff; letter-spacing:2px; }
-.subtitle { text-align:center; font-size:12px; color:#777; margin-bottom:20px; }
-.container { max-width:420px; margin:auto; padding:15px; }
-.card { background:rgba(255,255,255,0.04); border-radius:18px; padding:18px; margin-bottom:16px; backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.08); box-shadow:0 0 25px rgba(123,92,255,0.08);}
-label { font-size:12px; color:#888; }
-select,input { width:100%; padding:12px; margin:6px 0 14px; border-radius:12px; border:none; background:rgba(255,255,255,0.08); color:#fff; font-size:15px; outline:none;}
-button { width:100%; padding:14px; border-radius:14px; border:none; font-size:15px; font-weight:bold; color:white; background:linear-gradient(90deg,#6d5cff,#a78bfa); box-shadow:0 0 20px rgba(123,92,255,0.5);}
-.result { font-size:18px; line-height:2;}
-.fade { animation:fadeUp 0.6s ease;}
-@keyframes fadeUp { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
-.big { font-size:22px; color:#a78bfa; font-weight:bold;}
-.small { font-size:13px; color:#888;}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: radial-gradient(circle at 20% 0%, #1a1a2e, #05050a 70%);
+  color: #eee;
+}
+
+/* はみ出し防止（重要） */
+* {
+  box-sizing: border-box;
+}
+
+/* タイトル */
+h1 {
+  text-align: center;
+  margin: 30px 0 10px;
+  font-size: 24px;
+  color: #d4ccff;
+  letter-spacing: 2px;
+}
+
+/* サブ */
+.subtitle {
+  text-align: center;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+/* コンテナ */
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 15px;
+}
+
+/* カード */
+.card {
+  background: rgba(255,255,255,0.04);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 25px rgba(123,92,255,0.08);
+}
+
+/* ラベル */
+label {
+  font-size: 12px;
+  color: #888;
+}
+
+/* 入力 */
+select, input {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0 14px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+}
+
+/* ボタン */
+button {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(90deg, #6d5cff, #a78bfa);
+  box-shadow: 0 0 20px rgba(123,92,255,0.5);
+}
+
+/* 光エフェクト */
+button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+button:active::after {
+  width: 220px;
+  height: 220px;
+  opacity: 0.2;
+  transition: 0.4s;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+/* 結果 */
+.result {
+  font-size: 18px;
+  line-height: 2;
+}
+
+/* アニメーション */
+.fade {
+  animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.big {
+  font-size: 22px;
+  color: #a78bfa;
+  font-weight: bold;
+}
+
+.small {
+  font-size: 13px;
+  color: #888;
+}
 </style>
 </head>
+
 <body>
 
-<h1>KAMITSUBAKI TCG</h1>
-<div class="subtitle">artist probability tool (with redraw)</div>
+<h1>KCG artist確率計算</h1>
+<div class="subtitle">artist probability tool</div>
 
 <div class="container">
 
@@ -56,7 +182,7 @@ button { width:100%; padding:14px; border-radius:14px; border:none; font-size:15
 
 <script>
 function comb(n, r){
-  if(r > n || r < 0) return 0;
+  if(r > n) return 0;
   let res = 1;
   for(let i=1;i<=r;i++){
     res *= (n-r+i)/i;
@@ -70,31 +196,22 @@ function calc(){
   let bad = +document.getElementById("bad").value;
   let draw = +document.getElementById("turn").value;
 
-  if(good < 0 || bad < 0 || good + bad > deck){
-    alert("引きたい・引きたくないカード枚数が不正です");
-    return;
-  }
-
   let total = comb(deck, draw);
 
-  // 普通の確率
   let noGood = comb(deck - good, draw) / total;
   let oneGood = (comb(good,1) * comb(deck - good, draw - 1)) / total;
-  let atLeast1 = (1 - noGood);
-  let atLeast2 = (1 - noGood - oneGood);
 
-  // 理想確率
-  let ideal = (comb(deck - bad, draw) - comb(deck - good - bad, draw)) / total;
+  let atLeast1 = (1 - noGood) * 100;
+  let atLeast2 = (1 - noGood - oneGood) * 100;
 
-  // 引き直しルールを考慮した条件付き確率
-  let atLeast1_redraw = 1.0 * 100; // 1枚以上は必ず引ける
-  let atLeast2_redraw = (atLeast2 / atLeast1) * 100; // 条件付き確率
-  let ideal_redraw = (ideal / atLeast1) * 100;
+  let ideal =
+    (comb(deck - bad, draw) - comb(deck - good - bad, draw)) 
+    / total * 100;
 
   document.getElementById("result").innerHTML =
-    "<div class='fade'>1枚以上（引き直し後）</div><div class='big fade'>" + atLeast1_redraw.toFixed(2) + "%</div>" +
-    "<div class='fade'>2枚以上（条件付き）</div><div class='big fade'>" + atLeast2_redraw.toFixed(2) + "%</div>" +
-    "<div class='fade'>理想（条件付き）</div><div class='big fade'>" + ideal_redraw.toFixed(2) + "%</div>";
+    "<div class='fade'>1枚以上</div><div class='big fade'>" + atLeast1.toFixed(2) + "%</div>" +
+    "<div class='fade'>2枚以上</div><div class='big fade'>" + atLeast2.toFixed(2) + "%</div>" +
+    "<div class='fade'>理想</div><div class='big fade'>" + ideal.toFixed(2) + "%</div>";
 }
 </script>
 
