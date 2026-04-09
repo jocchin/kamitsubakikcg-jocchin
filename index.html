@@ -85,8 +85,7 @@ canvas {
     <option value="8">後手（8枚）</option>
   </select>
 
-  <label>デッキ枚数</label>
-  <input type="number" id="deck" value="0">
+  <p>デッキ枚数：60枚（固定）</p>
 
   <label>引きたいartist</label>
   <input type="number" id="good" value="0">
@@ -118,7 +117,7 @@ function comb(n, r){
 }
 
 function calc(){
-  let deck = +document.getElementById("deck").value;
+  let deck = 60;
   let good = +document.getElementById("good").value;
   let bad = +document.getElementById("bad").value;
   let startDraw = +document.getElementById("turn").value;
@@ -131,21 +130,24 @@ function calc(){
     let draw = startDraw + turn;
 
     let total = comb(deck, draw);
-    if(total === 0) continue;
 
     let noGood = comb(deck - good, draw) / total;
+    let oneGood = (comb(good,1) * comb(deck - good, draw - 1)) / total;
+
     let noBad = comb(deck - bad, draw) / total;
 
-    let goodProb = (1 - noGood) * 100;
-    let idealProb = (1 - noGood) * noBad * 100;
+    let atLeast1 = (1 - noGood) * 100;
+    let atLeast2 = (1 - noGood - oneGood) * 100;
+    let ideal = (1 - noGood) * noBad * 100;
 
     labels.push("T" + turn);
-    goodArr.push(goodProb.toFixed(1));
-    idealArr.push(idealProb.toFixed(1));
+    goodArr.push(atLeast1.toFixed(1));
+    idealArr.push(ideal.toFixed(1));
   }
 
   document.getElementById("result").innerHTML =
-    "良いartistを引ける確率： " + goodArr[0] + "%<br>" +
+    "1枚以上引く確率： " + goodArr[0] + "%<br>" +
+    "2枚以上引く確率： " + (1 - (comb(60 - good, startDraw) / comb(60, startDraw)) - ((comb(good,1)*comb(60-good,startDraw-1))/comb(60,startDraw))) * 100 + "%<br>" +
     "理想（良い引いて悪い引かない）： " + idealArr[0] + "%";
 
   if(chart) chart.destroy();
@@ -156,7 +158,7 @@ function calc(){
       labels: labels,
       datasets: [
         {
-          label: '良いartist',
+          label: '1枚以上',
           data: goodArr,
           borderWidth: 2,
           tension: 0.3
