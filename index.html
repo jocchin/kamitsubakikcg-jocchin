@@ -5,49 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>神椿TCG 確率ツール</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@200;300&display=swap" rel="stylesheet">
-
 <style>
 body {
   margin: 0;
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: radial-gradient(circle at 20% 0%, #1a1a2e, #05050a 70%);
   color: #eee;
-}
-
-/* 粒子 */
-#particles {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* ノイズ */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-
-  background-image: 
-    repeating-radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 2px),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 2px);
-
-  opacity: 0.18;
-}
-
-/* UI前面 */
-.container, h1, .subtitle {
-  position: relative;
-  z-index: 2;
-}
-
-.container {
-  max-width: 420px;
-  margin: auto;
-  padding: 15px;
 }
 
 /* タイトル */
@@ -57,9 +20,9 @@ h1 {
   font-size: 24px;
   color: #d4ccff;
   letter-spacing: 2px;
-  font-weight: 200;
 }
 
+/* サブ */
 .subtitle {
   text-align: center;
   font-size: 12px;
@@ -67,7 +30,14 @@ h1 {
   margin-bottom: 20px;
 }
 
-/* カード */
+/* コンテナ */
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 15px;
+}
+
+/* ガラスカード */
 .card {
   background: rgba(255,255,255,0.04);
   border-radius: 18px;
@@ -78,11 +48,13 @@ h1 {
   box-shadow: 0 0 25px rgba(123,92,255,0.08);
 }
 
+/* ラベル */
 label {
   font-size: 12px;
   color: #888;
 }
 
+/* 入力 */
 select, input {
   width: 100%;
   padding: 12px;
@@ -91,6 +63,8 @@ select, input {
   border: none;
   background: rgba(255,255,255,0.08);
   color: #fff;
+  font-size: 15px;
+  outline: none;
 }
 
 /* ボタン */
@@ -100,13 +74,16 @@ button {
   border-radius: 14px;
   border: none;
   font-size: 15px;
+  font-weight: bold;
   color: white;
   background: linear-gradient(90deg, #6d5cff, #a78bfa);
   box-shadow: 0 0 20px rgba(123,92,255,0.5);
+  transition: 0.2s;
 }
 
 button:active {
   transform: scale(0.96);
+  box-shadow: 0 0 10px rgba(123,92,255,0.3);
 }
 
 /* 結果 */
@@ -115,25 +92,20 @@ button:active {
   line-height: 2;
 }
 
-.fade {
-  animation: fadeUp 0.6s ease;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px);}
-  to { opacity: 1; transform: translateY(0);}
-}
-
 .big {
-  font-size: 24px;
+  font-size: 22px;
   color: #a78bfa;
+  font-weight: bold;
+}
+
+.small {
+  font-size: 13px;
+  color: #888;
 }
 </style>
 </head>
 
 <body>
-
-<canvas id="particles"></canvas>
 
 <h1>KAMITSUBAKI TCG</h1>
 <div class="subtitle">artist probability tool</div>
@@ -141,13 +113,14 @@ button:active {
 <div class="container">
 
 <div class="card">
+
 <label>先手 / 後手</label>
 <select id="turn">
   <option value="7">先手（7枚）</option>
   <option value="8">後手（8枚）</option>
 </select>
 
-<p style="color:#777;">デッキ枚数：60枚（固定）</p>
+<p class="small">デッキ枚数：60枚（固定）</p>
 
 <label>引きたいartist</label>
 <input type="number" id="good" value="0">
@@ -156,6 +129,7 @@ button:active {
 <input type="number" id="bad" value="0">
 
 <button onclick="calc()">CALCULATE</button>
+
 </div>
 
 <div class="card result" id="result">
@@ -165,62 +139,6 @@ button:active {
 </div>
 
 <script>
-// ===== 粒子（最強ver） =====
-const canvas = document.getElementById("particles");
-const ctx = canvas.getContext("2d");
-
-function resize(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", resize);
-
-let particles = [];
-
-function init(){
-  particles = [];
-  for(let i=0;i<60;i++){
-    particles.push({
-      x: Math.random()*canvas.width,
-      y: Math.random()*canvas.height,
-      r: Math.random()*2 + 0.5,
-      vx: (Math.random()-0.5)*0.1,
-      vy: -(Math.random()*0.4 + 0.1) // 上に流れる
-    });
-  }
-}
-init();
-
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  ctx.fillStyle = "rgba(255,255,255,0.5)";
-  ctx.shadowColor = "rgba(255,255,255,0.8)";
-  ctx.shadowBlur = 8;
-
-  particles.forEach(p=>{
-    p.x += p.vx;
-    p.y += p.vy;
-
-    if(p.y < 0){
-      p.y = canvas.height;
-      p.x = Math.random()*canvas.width;
-    }
-
-    if(p.x < 0) p.x = canvas.width;
-    if(p.x > canvas.width) p.x = 0;
-
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fill();
-  });
-
-  requestAnimationFrame(draw);
-}
-draw();
-
-// ===== 確率 =====
 function comb(n, r){
   if(r > n) return 0;
   let res = 1;
@@ -249,9 +167,9 @@ function calc(){
     / total * 100;
 
   document.getElementById("result").innerHTML =
-    "<div class='fade'>1枚以上</div><div class='big fade'>" + atLeast1.toFixed(2) + "%</div>" +
-    "<div class='fade'>2枚以上</div><div class='big fade'>" + atLeast2.toFixed(2) + "%</div>" +
-    "<div class='fade'>理想</div><div class='big fade'>" + ideal.toFixed(2) + "%</div>";
+    "<div>1枚以上</div><div class='big'>" + atLeast1.toFixed(2) + "%</div>" +
+    "<div>2枚以上</div><div class='big'>" + atLeast2.toFixed(2) + "%</div>" +
+    "<div>理想</div><div class='big'>" + ideal.toFixed(2) + "%</div>";
 }
 </script>
 
