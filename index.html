@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>神椿TCG 確率ツール</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
 body {
   margin: 0;
@@ -65,10 +63,6 @@ button {
   font-size: 16px;
   line-height: 1.8;
 }
-
-canvas {
-  margin-top: 10px;
-}
 </style>
 </head>
 
@@ -98,15 +92,9 @@ canvas {
 
 <div class="card result" id="result">ここに結果が出る</div>
 
-<div class="card">
-  <canvas id="chart"></canvas>
-</div>
-
 </div>
 
 <script>
-let chart;
-
 function comb(n, r){
   if(r > n) return 0;
   let res = 1;
@@ -120,69 +108,22 @@ function calc(){
   let deck = 60;
   let good = +document.getElementById("good").value;
   let bad = +document.getElementById("bad").value;
-  let startDraw = +document.getElementById("turn").value;
+  let draw = +document.getElementById("turn").value;
 
-  let labels = [];
-  let goodArr = [];
-  let idealArr = [];
+  let total = comb(deck, draw);
 
-  for(let turn=0; turn<=5; turn++){
-    let draw = startDraw + turn;
+  let noGood = comb(deck - good, draw) / total;
+  let oneGood = (comb(good,1) * comb(deck - good, draw - 1)) / total;
+  let noBad = comb(deck - bad, draw) / total;
 
-    let total = comb(deck, draw);
-
-    let noGood = comb(deck - good, draw) / total;
-    let noBad = comb(deck - bad, draw) / total;
-
-    let goodProb = (1 - noGood) * 100;
-    let idealProb = (1 - noGood) * noBad * 100;
-
-    labels.push("T" + turn);
-    goodArr.push(goodProb.toFixed(1));
-    idealArr.push(idealProb.toFixed(1));
-  }
+  let atLeast1 = (1 - noGood) * 100;
+  let atLeast2 = (1 - noGood - oneGood) * 100;
+  let ideal = (1 - noGood) * noBad * 100;
 
   document.getElementById("result").innerHTML =
-    "1枚以上引く確率： " + goodArr[0] + "%<br>" +
-    "理想（良い引いて悪い引かない）： " + idealArr[0] + "%";
-
-  if(chart) chart.destroy();
-
-  chart = new Chart(document.getElementById("chart"), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: '1枚以上',
-          data: goodArr,
-          borderWidth: 2,
-          tension: 0.3
-        },
-        {
-          label: '理想',
-          data: idealArr,
-          borderWidth: 2,
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      plugins: {
-        legend: {
-          labels: { color: "white" }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: "white" }
-        },
-        y: {
-          ticks: { color: "white" }
-        }
-      }
-    }
-  });
+    "1枚以上引く確率： " + atLeast1.toFixed(2) + "%<br>" +
+    "2枚以上引く確率： " + atLeast2.toFixed(2) + "%<br>" +
+    "理想（良い引いて悪い引かない）： " + ideal.toFixed(2) + "%";
 }
 </script>
 
