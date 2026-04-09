@@ -13,8 +13,12 @@ body {
   color: #eee;
 }
 
-* { box-sizing: border-box; }
+/* はみ出し防止 */
+* {
+  box-sizing: border-box;
+}
 
+/* タイトル */
 h1 {
   text-align: center;
   margin: 30px 0 10px;
@@ -23,6 +27,7 @@ h1 {
   letter-spacing: 2px;
 }
 
+/* サブ */
 .subtitle {
   text-align: center;
   font-size: 12px;
@@ -30,12 +35,14 @@ h1 {
   margin-bottom: 20px;
 }
 
+/* コンテナ */
 .container {
   max-width: 420px;
   margin: auto;
   padding: 15px;
 }
 
+/* カード */
 .card {
   background: rgba(255,255,255,0.04);
   border-radius: 18px;
@@ -43,10 +50,17 @@ h1 {
   margin-bottom: 16px;
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 25px rgba(123,92,255,0.08);
+}
+
+/* ラベル */
+label {
+  font-size: 12px;
+  color: #888;
 }
 
 /* 入力 */
-input, select {
+select, input {
   width: 100%;
   padding: 12px;
   margin: 6px 0 14px;
@@ -54,6 +68,8 @@ input, select {
   border: none;
   background: rgba(255,255,255,0.08);
   color: #fff;
+  font-size: 15px;
+  outline: none;
 }
 
 /* ボタン */
@@ -64,11 +80,14 @@ button {
   padding: 14px;
   border-radius: 14px;
   border: none;
+  font-size: 15px;
+  font-weight: bold;
   color: white;
   background: linear-gradient(90deg, #6d5cff, #a78bfa);
+  box-shadow: 0 0 20px rgba(123,92,255,0.5);
 }
 
-/* 光 */
+/* 光エフェクト */
 button::after {
   content: "";
   position: absolute;
@@ -95,16 +114,24 @@ button:active {
 
 /* 結果 */
 .result {
+  font-size: 18px;
   line-height: 2;
 }
 
+/* アニメーション */
 .fade {
   animation: fadeUp 0.6s ease;
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px);}
-  to { opacity: 1; transform: translateY(0);}
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .big {
@@ -122,7 +149,7 @@ button:active {
 
 <body>
 
-<h1>KCG artist確率計算</h1>
+<h1>KAMITSUBAKI TCG</h1>
 <div class="subtitle">artist probability tool</div>
 
 <div class="container">
@@ -137,11 +164,11 @@ button:active {
 
 <p class="small">デッキ枚数：60枚（固定）</p>
 
-<label>artist総数</label>
-<input type="number" id="totalA" value="14">
-
 <label>引きたいartist</label>
-<input type="number" id="target" value="4">
+<input type="number" id="good" value="0">
+
+<label>引きたくないartist</label>
+<input type="number" id="bad" value="0">
 
 <button onclick="calc()">CALCULATE</button>
 
@@ -155,7 +182,7 @@ button:active {
 
 <script>
 function comb(n, r){
-  if(r > n) return 0;
+  if(r > n || r < 0) return 0;
   let res = 1;
   for(let i=1;i<=r;i++){
     res *= (n-r+i)/i;
@@ -165,34 +192,34 @@ function comb(n, r){
 
 function calc(){
   let deck = 60;
-  let totalA = +document.getElementById("totalA").value;
-  let target = +document.getElementById("target").value;
+  let good = +document.getElementById("good").value;
+  let bad = +document.getElementById("bad").value;
   let draw = +document.getElementById("turn").value;
 
-  let otherA = totalA - target;
-  let nonA = deck - totalA;
+  if(good < 0 || bad < 0 || good + bad > deck){
+    alert("引きたい・引きたくないカード枚数が不正です");
+    return;
+  }
 
   let total = comb(deck, draw);
 
-  // 1枚以上
-  let noTarget = comb(deck - target, draw) / total;
-  let atLeast1 = (1 - noTarget) * 100;
+  // 1枚以上、2枚以上の確率
+  let noGood = comb(deck - good, draw) / total;
+  let oneGood = (comb(good,1) * comb(deck - good, draw - 1)) / total;
+  let atLeast1 = (1 - noGood) * 100;
+  let atLeast2 = (1 - noGood - oneGood) * 100;
 
-  // 2枚以上
-  let oneTarget = (comb(target,1) * comb(deck - target, draw - 1)) / total;
-  let atLeast2 = (1 - noTarget - oneTarget) * 100;
-
-  // 理想（欲しい引いて他artist引かない）
-  let success = 0;
-  for(let k=1; k<=draw; k++){
-    success += comb(target, k) * comb(nonA, draw - k);
+  // 理想確率: 引きたいカード1枚以上かつ引きたくないカード0枚
+  let idealCount = 0;
+  for(let k=1; k <= Math.min(draw, good); k++){
+    idealCount += comb(good, k) * comb(deck - good - bad, draw - k);
   }
-  let ideal = (success / total) * 100;
+  let ideal = idealCount / total * 100;
 
   document.getElementById("result").innerHTML =
-    "<div class='fade'>1枚以上引ける</div><div class='big fade'>" + atLeast1.toFixed(2) + "%</div>" +
-    "<div class='fade'>2枚以上引ける</div><div class='big fade'>" + atLeast2.toFixed(2) + "%</div>" +
-    "<div class='fade'>理想（他artistなし）</div><div class='big fade'>" + ideal.toFixed(2) + "%</div>";
+    "<div class='fade'>1枚以上</div><div class='big fade'>" + atLeast1.toFixed(2) + "%</div>" +
+    "<div class='fade'>2枚以上</div><div class='big fade'>" + atLeast2.toFixed(2) + "%</div>" +
+    "<div class='fade'>理想</div><div class='big fade'>" + ideal.toFixed(2) + "%</div>";
 }
 </script>
 
