@@ -20,43 +20,33 @@ body {
 }
 
 h1 {
-  font-size: 22px;
   text-align: center;
-  margin-bottom: 15px;
 }
 
 .card {
   background: rgba(255,255,255,0.05);
   padding: 15px;
-  border-radius: 14px;
+  border-radius: 12px;
   margin-bottom: 15px;
 }
 
-label {
-  font-size: 13px;
-  opacity: 0.8;
-}
-
-input, select {
+select, input {
   width: 100%;
-  padding: 12px;
-  margin-top: 5px;
-  margin-bottom: 10px;
-  border-radius: 10px;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
   border: none;
   background: #222;
   color: white;
-  font-size: 16px;
 }
 
 button {
   width: 100%;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 10px;
   border: none;
-  background: linear-gradient(90deg, #7b5cff, #9f7bff);
+  background: #7b5cff;
   color: white;
-  font-size: 16px;
 }
 
 .result {
@@ -73,21 +63,23 @@ button {
 <h1>神椿TCG artist確率</h1>
 
 <div class="card">
-  <label>先手 / 後手</label>
-  <select id="turn">
-    <option value="7">先手（7枚）</option>
-    <option value="8">後手（8枚）</option>
-  </select>
 
-  <p>デッキ枚数：60枚（固定）</p>
+<label>先手 / 後手</label>
+<select id="turn">
+  <option value="7">先手（7枚）</option>
+  <option value="8">後手（8枚）</option>
+</select>
 
-  <label>引きたいartist</label>
-  <input type="number" id="good" value="0">
+<p>デッキ枚数：60枚（固定）</p>
 
-  <label>引きたくないartist</label>
-  <input type="number" id="bad" value="0">
+<label>引きたいartist</label>
+<input type="number" id="good" value="0">
 
-  <button onclick="calc()">計算する</button>
+<label>引きたくないartist</label>
+<input type="number" id="bad" value="0">
+
+<button onclick="calc()">計算する</button>
+
 </div>
 
 <div class="card result" id="result">ここに結果が出る</div>
@@ -112,13 +104,23 @@ function calc(){
 
   let total = comb(deck, draw);
 
+  // 1枚も引かない
   let noGood = comb(deck - good, draw) / total;
+
+  // ちょうど1枚
   let oneGood = (comb(good,1) * comb(deck - good, draw - 1)) / total;
+
+  // 悪い引かない
   let noBad = comb(deck - bad, draw) / total;
 
+  // 確率
   let atLeast1 = (1 - noGood) * 100;
   let atLeast2 = (1 - noGood - oneGood) * 100;
-  let ideal = (1 - noGood) * noBad * 100;
+
+  // ★完全に正しい理想
+  let ideal =
+    (comb(deck - bad, draw) - comb(deck - good - bad, draw)) 
+    / total * 100;
 
   document.getElementById("result").innerHTML =
     "1枚以上引く確率： " + atLeast1.toFixed(2) + "%<br>" +
