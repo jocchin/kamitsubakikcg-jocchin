@@ -9,17 +9,25 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: radial-gradient(circle at top, #1a1a2e, #0a0a12);
-  color: white;
+  background: radial-gradient(circle at 20% 0%, #1a1a2e, #05050a 70%);
+  color: #eee;
 }
 
 /* タイトル */
 h1 {
   text-align: center;
+  margin: 30px 0 10px;
   font-size: 24px;
-  margin: 25px 0;
-  letter-spacing: 1px;
-  color: #c9b6ff;
+  color: #d4ccff;
+  letter-spacing: 2px;
+}
+
+/* サブ */
+.subtitle {
+  text-align: center;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 20px;
 }
 
 /* コンテナ */
@@ -31,66 +39,76 @@ h1 {
 
 /* ガラスカード */
 .card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 18px;
   padding: 18px;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 25px rgba(123,92,255,0.08);
 }
 
 /* ラベル */
 label {
-  font-size: 13px;
-  color: #aaa;
+  font-size: 12px;
+  color: #888;
 }
 
 /* 入力 */
 select, input {
   width: 100%;
   padding: 12px;
-  margin: 8px 0 12px 0;
-  border-radius: 10px;
+  margin: 6px 0 14px;
+  border-radius: 12px;
   border: none;
   background: rgba(255,255,255,0.08);
-  color: white;
-  font-size: 16px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
 }
 
 /* ボタン */
 button {
   width: 100%;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: none;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   color: white;
-  background: linear-gradient(90deg, #7b5cff, #a78bfa);
-  box-shadow: 0 0 15px rgba(123,92,255,0.4);
+  background: linear-gradient(90deg, #6d5cff, #a78bfa);
+  box-shadow: 0 0 20px rgba(123,92,255,0.5);
   transition: 0.2s;
 }
 
 button:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
+  box-shadow: 0 0 10px rgba(123,92,255,0.3);
 }
 
 /* 結果 */
 .result {
-  font-size: 17px;
-  line-height: 1.9;
+  font-size: 18px;
+  line-height: 2;
 }
 
-.highlight {
+.big {
+  font-size: 22px;
   color: #a78bfa;
   font-weight: bold;
+}
+
+.small {
+  font-size: 13px;
+  color: #888;
 }
 </style>
 </head>
 
 <body>
 
-<h1>神椿TCG artist確率</h1>
+<h1>KAMITSUBAKI TCG</h1>
+<div class="subtitle">artist probability tool</div>
 
 <div class="container">
 
@@ -102,7 +120,7 @@ button:active {
   <option value="8">後手（8枚）</option>
 </select>
 
-<p style="color:#888;">デッキ枚数：60枚（固定）</p>
+<p class="small">デッキ枚数：60枚（固定）</p>
 
 <label>引きたいartist</label>
 <input type="number" id="good" value="0">
@@ -110,12 +128,12 @@ button:active {
 <label>引きたくないartist</label>
 <input type="number" id="bad" value="0">
 
-<button onclick="calc()">計算する</button>
+<button onclick="calc()">CALCULATE</button>
 
 </div>
 
 <div class="card result" id="result">
-ここに結果が出る
+結果がここに表示されます
 </div>
 
 </div>
@@ -149,9 +167,9 @@ function calc(){
     / total * 100;
 
   document.getElementById("result").innerHTML =
-    "<span class='highlight'>1枚以上：</span> " + atLeast1.toFixed(2) + "%<br>" +
-    "<span class='highlight'>2枚以上：</span> " + atLeast2.toFixed(2) + "%<br>" +
-    "<span class='highlight'>理想：</span> " + ideal.toFixed(2) + "%";
+    "<div>1枚以上</div><div class='big'>" + atLeast1.toFixed(2) + "%</div>" +
+    "<div>2枚以上</div><div class='big'>" + atLeast2.toFixed(2) + "%</div>" +
+    "<div>理想</div><div class='big'>" + ideal.toFixed(2) + "%</div>";
 }
 </script>
 
