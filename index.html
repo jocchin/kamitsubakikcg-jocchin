@@ -43,6 +43,7 @@ h1 {
   margin-bottom: 16px;
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 25px rgba(123,92,255,0.08);
 }
 
 label {
@@ -50,7 +51,7 @@ label {
   color: #888;
 }
 
-input {
+select, input {
   width: 100%;
   padding: 12px;
   margin: 6px 0 14px;
@@ -61,26 +62,71 @@ input {
 }
 
 button {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   padding: 14px;
   border-radius: 14px;
   border: none;
+  font-size: 15px;
   color: white;
   background: linear-gradient(90deg, #6d5cff, #a78bfa);
 }
 
-.result { line-height: 2; }
+button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+button:active::after {
+  width: 220px;
+  height: 220px;
+  opacity: 0.2;
+  transition: 0.4s;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+.result {
+  font-size: 18px;
+  line-height: 2;
+}
+
+.fade {
+  animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
 
 .big {
-  font-size: 20px;
+  font-size: 22px;
   color: #a78bfa;
+  font-weight: bold;
+}
+
+.small {
+  font-size: 13px;
+  color: #888;
 }
 </style>
 </head>
 
 <body>
 
-<h1>KAMITSUBAKI TCG</h1>
+<h1>KCG artist確率計算</h1>
 <div class="subtitle">artist probability tool</div>
 
 <div class="container">
@@ -93,20 +139,21 @@ button {
   <option value="8">後手（8枚）</option>
 </select>
 
+<p class="small">デッキ枚数：60枚（固定）</p>
+
 <label>artist総数</label>
-<input type="number" id="totalA" value="0">
+<input type="number" id="totalArtist" value="0">
 
-<label>引きたいartist枚数</label>
-<input type="number" id="want" value="0">
-
-<label>引きたくないartist枚数</label>
-<input type="number" id="dont" value="0">
+<label>引きたいartist</label>
+<input type="number" id="targetArtist" value="0">
 
 <button onclick="calc()">CALCULATE</button>
 
 </div>
 
-<div class="card result" id="result"></div>
+<div class="card result" id="result">
+結果がここに表示されます
+</div>
 
 </div>
 
@@ -122,23 +169,23 @@ function comb(n, r){
 
 function calc(){
   let deck = 60;
-  let want = +document.getElementById("want").value;
-  let dont = +document.getElementById("dont").value;
+  let totalA = +document.getElementById("totalArtist").value;
+  let target = +document.getElementById("targetArtist").value;
   let draw = +document.getElementById("turn").value;
 
   let total = comb(deck, draw);
 
-  // 引きたい
-  let noWant = comb(deck - want, draw) / total;
-  let wantProb = (1 - noWant) * 100;
+  // 1枚以上
+  let noTarget = comb(deck - target, draw) / total;
+  let atLeast1 = (1 - noTarget) * 100;
 
-  // 引きたくない（1枚も引かない確率）
-  let noDont = comb(deck - dont, draw) / total;
-  let avoidProb = noDont * 100;
+  // 2枚以上
+  let oneTarget = (comb(target,1) * comb(deck - target, draw - 1)) / total;
+  let atLeast2 = (1 - noTarget - oneTarget) * 100;
 
   document.getElementById("result").innerHTML =
-    "<div>引きたいartistを1枚以上</div><div class='big'>" + wantProb.toFixed(2) + "%</div>" +
-    "<div>引きたくないartistを引かない</div><div class='big'>" + avoidProb.toFixed(2) + "%</div>";
+    "<div class='fade'>引きたいartistを1枚以上</div><div class='big fade'>" + atLeast1.toFixed(2) + "%</div>" +
+    "<div class='fade'>2枚以上</div><div class='big fade'>" + atLeast2.toFixed(2) + "%</div>";
 }
 </script>
 
