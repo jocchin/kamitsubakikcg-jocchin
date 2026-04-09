@@ -9,58 +9,90 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(180deg, #0f0f1a, #1a1a2e);
+  background: radial-gradient(circle at top, #1a1a2e, #0a0a12);
   color: white;
 }
 
+/* タイトル */
+h1 {
+  text-align: center;
+  font-size: 24px;
+  margin: 25px 0;
+  letter-spacing: 1px;
+  color: #c9b6ff;
+}
+
+/* コンテナ */
 .container {
   max-width: 420px;
   margin: auto;
-  padding: 20px;
-}
-
-h1 {
-  text-align: center;
-}
-
-.card {
-  background: rgba(255,255,255,0.05);
   padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 15px;
 }
 
+/* ガラスカード */
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ラベル */
+label {
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* 入力 */
 select, input {
   width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: none;
-  background: #222;
-  color: white;
-}
-
-button {
-  width: 100%;
   padding: 12px;
+  margin: 8px 0 12px 0;
   border-radius: 10px;
   border: none;
-  background: #7b5cff;
+  background: rgba(255,255,255,0.08);
   color: white;
+  font-size: 16px;
 }
 
-.result {
+/* ボタン */
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
   font-size: 16px;
-  line-height: 1.8;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(90deg, #7b5cff, #a78bfa);
+  box-shadow: 0 0 15px rgba(123,92,255,0.4);
+  transition: 0.2s;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* 結果 */
+.result {
+  font-size: 17px;
+  line-height: 1.9;
+}
+
+.highlight {
+  color: #a78bfa;
+  font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
 <h1>神椿TCG artist確率</h1>
+
+<div class="container">
 
 <div class="card">
 
@@ -70,7 +102,7 @@ button {
   <option value="8">後手（8枚）</option>
 </select>
 
-<p>デッキ枚数：60枚（固定）</p>
+<p style="color:#888;">デッキ枚数：60枚（固定）</p>
 
 <label>引きたいartist</label>
 <input type="number" id="good" value="0">
@@ -82,7 +114,9 @@ button {
 
 </div>
 
-<div class="card result" id="result">ここに結果が出る</div>
+<div class="card result" id="result">
+ここに結果が出る
+</div>
 
 </div>
 
@@ -104,28 +138,20 @@ function calc(){
 
   let total = comb(deck, draw);
 
-  // 1枚も引かない
   let noGood = comb(deck - good, draw) / total;
-
-  // ちょうど1枚
   let oneGood = (comb(good,1) * comb(deck - good, draw - 1)) / total;
 
-  // 悪い引かない
-  let noBad = comb(deck - bad, draw) / total;
-
-  // 確率
   let atLeast1 = (1 - noGood) * 100;
   let atLeast2 = (1 - noGood - oneGood) * 100;
 
-  // ★完全に正しい理想
   let ideal =
     (comb(deck - bad, draw) - comb(deck - good - bad, draw)) 
     / total * 100;
 
   document.getElementById("result").innerHTML =
-    "1枚以上引く確率： " + atLeast1.toFixed(2) + "%<br>" +
-    "2枚以上引く確率： " + atLeast2.toFixed(2) + "%<br>" +
-    "理想（良い引いて悪い引かない）： " + ideal.toFixed(2) + "%";
+    "<span class='highlight'>1枚以上：</span> " + atLeast1.toFixed(2) + "%<br>" +
+    "<span class='highlight'>2枚以上：</span> " + atLeast2.toFixed(2) + "%<br>" +
+    "<span class='highlight'>理想：</span> " + ideal.toFixed(2) + "%";
 }
 </script>
 
