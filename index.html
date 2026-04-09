@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神椿TCG シミュレーション版</title>
-
+<title>神椿TCG 確率ツール（引き直し対応）</title>
 <style>
-body { margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background: radial-gradient(circle at 20% 0%, #1a1a2e,#05050a 70%); color:#eee; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:radial-gradient(circle at 20% 0%,#1a1a2e,#05050a 70%); color:#eee; }
 * { box-sizing:border-box; }
 h1 { text-align:center; margin:30px 0 10px; font-size:24px; color:#d4ccff; letter-spacing:2px; }
 .subtitle { text-align:center; font-size:12px; color:#777; margin-bottom:20px; }
@@ -25,7 +24,7 @@ button { width:100%; padding:14px; border-radius:14px; border:none; font-size:15
 <body>
 
 <h1>KAMITSUBAKI TCG</h1>
-<div class="subtitle">Simulation probability tool</div>
+<div class="subtitle">artist probability tool (with redraw)</div>
 
 <div class="container">
 
@@ -37,13 +36,15 @@ button { width:100%; padding:14px; border-radius:14px; border:none; font-size:15
   <option value="8">後手（8枚）</option>
 </select>
 
+<p class="small">デッキ枚数：60枚（固定）</p>
+
 <label>引きたいartist</label>
-<input type="number" id="good" value="4">
+<input type="number" id="good" value="0">
 
 <label>引きたくないartist</label>
-<input type="number" id="bad" value="10">
+<input type="number" id="bad" value="0">
 
-<button onclick="simulate()">CALCULATE</button>
+<button onclick="calc()">CALCULATE</button>
 
 </div>
 
@@ -54,45 +55,46 @@ button { width:100%; padding:14px; border-radius:14px; border:none; font-size:15
 </div>
 
 <script>
-function simulate(){
-  let deckSize = 60;
+function comb(n, r){
+  if(r > n || r < 0) return 0;
+  let res = 1;
+  for(let i=1;i<=r;i++){
+    res *= (n-r+i)/i;
+  }
+  return res;
+}
+
+function calc(){
+  let deck = 60;
   let good = +document.getElementById("good").value;
   let bad = +document.getElementById("bad").value;
   let draw = +document.getElementById("turn").value;
-  let trials = 100000; // シミュレーション回数
 
-  if(good < 0 || bad < 0 || good + bad > deckSize){
+  if(good < 0 || bad < 0 || good + bad > deck){
     alert("引きたい・引きたくないカード枚数が不正です");
     return;
   }
 
-  // デッキ作成: 0=その他, 1=good, 2=bad
-  let deck = [];
-  for(let i=0;i<good;i++) deck.push(1);
-  for(let i=0;i<bad;i++) deck.push(2);
-  while(deck.length < deckSize) deck.push(0);
+  let total = comb(deck, draw);
 
-  let success = 0;
+  // 普通の確率
+  let noGood = comb(deck - good, draw) / total;
+  let oneGood = (comb(good,1) * comb(deck - good, draw - 1)) / total;
+  let atLeast1 = (1 - noGood);
+  let atLeast2 = (1 - noGood - oneGood);
 
-  for(let t=0; t<trials; t++){
-    // デッキをシャッフル
-    let copy = deck.slice();
-    for(let i=copy.length-1;i>0;i--){
-      let j=Math.floor(Math.random()* (i+1));
-      [copy[i],copy[j]] = [copy[j],copy[i]];
-    }
-    let hand = copy.slice(0,draw);
+  // 理想確率
+  let ideal = (comb(deck - bad, draw) - comb(deck - good - bad, draw)) / total;
 
-    let goodCount = hand.filter(x=>x===1).length;
-    let badCount = hand.filter(x=>x===2).length;
-
-    if(goodCount>=1 && badCount===0) success++;
-  }
-
-  let prob = success / trials * 100;
+  // 引き直しルールを考慮した条件付き確率
+  let atLeast1_redraw = 1.0 * 100; // 1枚以上は必ず引ける
+  let atLeast2_redraw = (atLeast2 / atLeast1) * 100; // 条件付き確率
+  let ideal_redraw = (ideal / atLeast1) * 100;
 
   document.getElementById("result").innerHTML =
-    "<div class='fade'>1枚以上 & bad 0枚</div><div class='big fade'>" + prob.toFixed(2) + "%</div>";
+    "<div class='fade'>1枚以上（引き直し後）</div><div class='big fade'>" + atLeast1_redraw.toFixed(2) + "%</div>" +
+    "<div class='fade'>2枚以上（条件付き）</div><div class='big fade'>" + atLeast2_redraw.toFixed(2) + "%</div>" +
+    "<div class='fade'>理想（条件付き）</div><div class='big fade'>" + ideal_redraw.toFixed(2) + "%</div>";
 }
 </script>
 
