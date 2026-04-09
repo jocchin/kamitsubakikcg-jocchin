@@ -13,6 +13,11 @@ body {
   color: #eee;
 }
 
+/* はみ出し防止（重要） */
+* {
+  box-sizing: border-box;
+}
+
 /* タイトル */
 h1 {
   text-align: center;
@@ -37,7 +42,7 @@ h1 {
   padding: 15px;
 }
 
-/* ガラスカード */
+/* カード */
 .card {
   background: rgba(255,255,255,0.04);
   border-radius: 18px;
@@ -69,6 +74,8 @@ select, input {
 
 /* ボタン */
 button {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   padding: 14px;
   border-radius: 14px;
@@ -78,18 +85,53 @@ button {
   color: white;
   background: linear-gradient(90deg, #6d5cff, #a78bfa);
   box-shadow: 0 0 20px rgba(123,92,255,0.5);
-  transition: 0.2s;
+}
+
+/* 光エフェクト */
+button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+button:active::after {
+  width: 220px;
+  height: 220px;
+  opacity: 0.2;
+  transition: 0.4s;
 }
 
 button:active {
   transform: scale(0.96);
-  box-shadow: 0 0 10px rgba(123,92,255,0.3);
 }
 
 /* 結果 */
 .result {
   font-size: 18px;
   line-height: 2;
+}
+
+/* アニメーション */
+.fade {
+  animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .big {
@@ -167,9 +209,9 @@ function calc(){
     / total * 100;
 
   document.getElementById("result").innerHTML =
-    "<div>1枚以上</div><div class='big'>" + atLeast1.toFixed(2) + "%</div>" +
-    "<div>2枚以上</div><div class='big'>" + atLeast2.toFixed(2) + "%</div>" +
-    "<div>理想</div><div class='big'>" + ideal.toFixed(2) + "%</div>";
+    "<div class='fade'>1枚以上</div><div class='big fade'>" + atLeast1.toFixed(2) + "%</div>" +
+    "<div class='fade'>2枚以上</div><div class='big fade'>" + atLeast2.toFixed(2) + "%</div>" +
+    "<div class='fade'>理想</div><div class='big fade'>" + ideal.toFixed(2) + "%</div>";
 }
 </script>
 
