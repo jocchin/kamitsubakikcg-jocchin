@@ -17,14 +17,18 @@ body {
   position: relative;
 }
 
-/* ノイズ */
+/* ★ ノイズ（完全安定版） */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
-  opacity: 0.08;
   pointer-events: none;
+
+  background-image: 
+    repeating-radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 2px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 2px);
+
+  opacity: 0.18;
 }
 
 /* タイトル */
