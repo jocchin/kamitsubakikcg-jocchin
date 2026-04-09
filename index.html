@@ -30,7 +30,7 @@ button { width:100%; padding:14px; border-radius:14px; border:none; font-size:15
 
 <body>
 
-<h1>KAMITSUBAKI TCG</h1>
+<h1>KCG artist確率計算</h1>
 <div class="subtitle">artist probability tool</div>
 
 <div class="container">
@@ -47,6 +47,9 @@ button { width:100%; padding:14px; border-radius:14px; border:none; font-size:15
 
 <label>引きたいartist</label>
 <input type="number" id="good" value="0">
+
+<label>引きたくないartist</label>
+<input type="number" id="bad" value="0">
 
 <button onclick="calc()">CALCULATE</button>
 
@@ -71,10 +74,11 @@ function comb(n, r){
 function calc(){
   let deck = 60;
   let good = +document.getElementById("good").value;
+  let bad = +document.getElementById("bad").value;
   let draw = +document.getElementById("turn").value;
 
-  if(good < 0 || good > deck){
-    alert("引きたいカード枚数が不正です");
+  if(good < 0 || bad < 0 || good + bad > deck){
+    alert("引きたい・引きたくないカード枚数が不正です");
     return;
   }
 
@@ -82,13 +86,18 @@ function calc(){
 
   // 引きたいアーティストを1枚も引かない確率
   let noGood = comb(deck - good, draw) / total;
-
-  // 1枚以上引く確率（アーティストは必ず1枚以上引く前提）
   let atLeast1_good = (1 - noGood) * 100;
+
+  // 弾きたくないアーティストを1枚も引かない確率
+  let noBad = comb(deck - bad, draw) / total;
+  let avoidBad = (1 - noBad) * 100; // 弾きたくないカードを引く確率
+  let avoidBadAdjusted = 100 - avoidBad; // 引かない確率に変換
 
   document.getElementById("result").innerHTML =
     "<div class='fade'>1枚以上引きたいアーティストが出る確率</div>" +
-    "<div class='big fade'>" + atLeast1_good.toFixed(2) + "%</div>";
+    "<div class='big fade'>" + atLeast1_good.toFixed(2) + "%</div>" +
+    "<div class='fade'>弾きたくないアーティストを避ける確率</div>" +
+    "<div class='big fade'>" + (100 - avoidBadAdjusted).toFixed(2) + "%</div>";
 }
 </script>
 
