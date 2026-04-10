@@ -118,7 +118,10 @@ button {
 
 <p class="small">デッキ枚数：60枚（固定）</p>
 
-<label>引きたくないartist（事故カード）</label>
+<label>引きたいアーティスト（メモ用）</label>
+<input type="number" id="good" value="0">
+
+<label>引きたくないアーティスト（事故カード）</label>
 <input type="number" id="bad" value="0">
 
 <button onclick="calc()">CALCULATE</button>
@@ -143,21 +146,25 @@ function comb(n, r){
 
 function calc(){
   let deck = 60;
+  let good = +document.getElementById("good").value;
   let bad = +document.getElementById("bad").value;
   let draw = +document.getElementById("turn").value;
 
-  if(bad < 0 || bad > deck){
+  if(bad < 0 || good < 0 || bad + good > deck){
     alert("入力が不正です");
     return;
   }
 
   let total = comb(deck, draw);
 
-  // 事故（badを1枚以上引く確率）
+  // 事故率（badを1枚以上引く）
   let noBad = comb(deck - bad, draw) / total;
   let accident = (1 - noBad) * 100;
 
   document.getElementById("result").innerHTML =
+    "<div class='fade'>引きたいアーティスト（メモ）</div>" +
+    "<div class='big fade'>" + good + "</div>" +
+
     "<div class='fade'>事故率（badを1枚以上引く確率）</div>" +
     "<div class='big fade'>" + accident.toFixed(2) + "%</div>";
 }
