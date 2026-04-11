@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神椿TCG 事故率ツール 完全版</title>
+<title>神椿TCG 確率ツール 完全版</title>
 
 <style>
 body {
@@ -14,39 +14,19 @@ body {
 }
 * { box-sizing: border-box; }
 
-h1 {
-  text-align:center;
-  margin:30px 0 10px;
-  font-size:24px;
-  color:#d4ccff;
-}
+h1 { text-align:center; margin:30px 0 10px; color:#d4ccff; }
+.subtitle { text-align:center; font-size:12px; color:#777; margin-bottom:20px; }
 
-.subtitle {
-  text-align:center;
-  font-size:12px;
-  color:#777;
-  margin-bottom:20px;
-}
-
-.container {
-  max-width:420px;
-  margin:auto;
-  padding:15px;
-}
+.container { max-width:420px; margin:auto; padding:15px; }
 
 .card {
   background:rgba(255,255,255,0.04);
   border-radius:18px;
   padding:18px;
   margin-bottom:16px;
-  backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.08);
 }
 
-label {
-  font-size:12px;
-  color:#888;
-}
+label { font-size:12px; color:#888; }
 
 select,input {
   width:100%;
@@ -68,23 +48,16 @@ button {
   background:linear-gradient(90deg,#6d5cff,#a78bfa);
 }
 
-.result {
-  font-size:18px;
-  line-height:2;
-}
+.result { font-size:18px; line-height:2; }
 
-.big {
-  font-size:24px;
-  color:#a78bfa;
-  font-weight:bold;
-}
+.big { font-size:22px; color:#a78bfa; font-weight:bold; }
 </style>
 </head>
 
 <body>
 
 <h1>KAMITSUBAKI TCG</h1>
-<div class="subtitle">事故率計算ツール（引き直し対応）</div>
+<div class="subtitle">確率ツール（引き直し対応）</div>
 
 <div class="container">
 
@@ -96,10 +69,13 @@ button {
   <option value="8">後手（8枚）</option>
 </select>
 
-<p class="small">デッキ枚数：60枚（固定）</p>
+<p>デッキ枚数：60枚</p>
 
 <label>アーティスト総数</label>
 <input type="number" id="artist" value="20">
+
+<label>引きたいアーティスト（good）</label>
+<input type="number" id="good" value="4">
 
 <label>引きたくないアーティスト（bad）</label>
 <input type="number" id="bad" value="0">
@@ -127,10 +103,11 @@ function comb(n, r){
 function calc(){
   let deck = 60;
   let artist = +document.getElementById("artist").value;
+  let good = +document.getElementById("good").value;
   let bad = +document.getElementById("bad").value;
   let draw = +document.getElementById("turn").value;
 
-  if(artist < 0 || bad < 0 || artist > deck || bad > artist){
+  if(artist > deck || good > artist || bad > artist || good + bad > artist){
     alert("入力が不正です");
     return;
   }
@@ -139,26 +116,31 @@ function calc(){
 
   // アーティスト0枚（引き直し対象）
   let noArtist = comb(deck - artist, draw);
-
-  // 有効試行（アーティスト1枚以上）
   let valid = total - noArtist;
 
-  // badを引かない
+  // ---------- 事故率 ----------
   let noBad = comb(deck - bad, draw);
-
-  // badを引く
   let badHit = total - noBad;
 
-  // アーティスト0枚かつbad含むケース
   let noArtist_noBad = comb(deck - artist - bad, draw);
-  let onlyNoArtist = noArtist;
+  let accident = (badHit - (noArtist - noArtist_noBad)) / valid;
 
-  // 有効な事故のみ抽出
-  let accident = (badHit - (onlyNoArtist - noArtist_noBad)) / valid * 100;
+  // ---------- good確率 ----------
+  let noGood = comb(deck - good, draw);
+  let goodHit = total - noGood;
+
+  let noArtist_noGood = comb(deck - artist - good, draw);
+  let goodRate = (goodHit - (noArtist - noArtist_noGood)) / valid;
+
+  // ---------- 理想（goodあり & badなし） ----------
+  let goodNoBad = comb(deck - bad, draw) - comb(deck - good - bad, draw);
+
+  let ideal = goodNoBad / valid;
 
   document.getElementById("result").innerHTML =
-    "<div>事故率（引き直し後）</div>" +
-    "<div class='big'>" + accident.toFixed(2) + "%</div>";
+    "<div>事故率（badを引く）</div><div class='big'>" + (accident*100).toFixed(2) + "%</div>" +
+    "<div>goodを引く確率</div><div class='big'>" + (goodRate*100).toFixed(2) + "%</div>" +
+    "<div>理想（goodあり & badなし）</div><div class='big'>" + (ideal*100).toFixed(2) + "%</div>";
 }
 </script>
 
