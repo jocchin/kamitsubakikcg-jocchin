@@ -2,21 +2,97 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>カード確率</title>
+<title>KAMITSUBAKI風 確率計算</title>
+
+<style>
+body {
+    background: radial-gradient(circle at top, #0a0a0f, #000000);
+    color: #e0e0ff;
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+    padding: 30px;
+}
+
+/* タイトル */
+h1 {
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: #9f7bff;
+    text-shadow: 0 0 10px #7a5cff;
+}
+
+/* カード風ボックス */
+.box {
+    background: rgba(20, 20, 40, 0.7);
+    border: 1px solid #7a5cff;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px auto;
+    width: 300px;
+    box-shadow: 0 0 15px rgba(122, 92, 255, 0.5);
+}
+
+/* 入力 */
+input {
+    width: 80px;
+    padding: 8px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #111;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 0 8px #7a5cff inset;
+}
+
+/* ボタン */
+button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7a5cff, #4bdfff);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px #7a5cff;
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #4bdfff;
+}
+
+/* 結果 */
+.result {
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.highlight {
+    color: #4bdfff;
+    font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
-<h2>60枚デッキ確率</h2>
+<h1>KAMITSUBAKI TCG PROBABILITY</h1>
 
-欲しいartist（60分の○）:
-<input id="want" value="4"><br>
+<div class="box">
+    <p>欲しいartist（60分の○）</p>
+    <input id="want" value="4"><br>
 
-引きたくないartist（60分の○）:
-<input id="dont" value="6"><br>
+    <p>引きたくないartist（60分の○）</p>
+    <input id="dont" value="6"><br>
 
-<button onclick="calc()">計算</button>
+    <button onclick="calc()">CALCULATE</button>
 
-<p id="result"></p>
+    <div id="result" class="result"></div>
+</div>
 
 <script>
 function comb(n, r) {
@@ -33,20 +109,18 @@ function calc() {
     const W = parseInt(document.getElementById("want").value);
     const D = parseInt(document.getElementById("dont").value);
 
-    // 先手7枚
     const want7 = 1 - comb(N - W, 7) / comb(N, 7);
     const dont7 = 1 - comb(N - D, 7) / comb(N, 7);
 
-    // 後手8枚
     const want8 = 1 - comb(N - W, 8) / comb(N, 8);
     const dont8 = 1 - comb(N - D, 8) / comb(N, 8);
 
     document.getElementById("result").innerHTML = `
-    【先手（7枚）】<br>
+    <span class="highlight">【先手（7枚）】</span><br>
     欲しいを引く: ${(want7*100).toFixed(2)}%<br>
     引きたくないを引く: ${(dont7*100).toFixed(2)}%<br><br>
 
-    【後手（8枚）】<br>
+    <span class="highlight">【後手（8枚）】</span><br>
     欲しいを引く: ${(want8*100).toFixed(2)}%<br>
     引きたくないを引く: ${(dont8*100).toFixed(2)}%
     `;
