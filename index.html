@@ -2,184 +2,51 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神椿TCG 確率ツール</title>
-
-<style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: radial-gradient(circle at 20% 0%, #1a1a2e, #05050a 70%);
-  color: #eee;
-}
-
-* { box-sizing: border-box; }
-
-h1 {
-  text-align: center;
-  margin: 30px 0 10px;
-  font-size: 24px;
-  color: #d4ccff;
-  letter-spacing: 2px;
-}
-
-.subtitle {
-  text-align: center;
-  font-size: 12px;
-  color: #777;
-  margin-bottom: 20px;
-}
-
-.container {
-  max-width: 420px;
-  margin: auto;
-  padding: 15px;
-}
-
-.card {
-  background: rgba(255,255,255,0.04);
-  border-radius: 18px;
-  padding: 18px;
-  margin-bottom: 16px;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 0 25px rgba(123,92,255,0.08);
-}
-
-label {
-  font-size: 12px;
-  color: #888;
-}
-
-select, input {
-  width: 100%;
-  padding: 12px;
-  margin: 6px 0 14px;
-  border-radius: 12px;
-  border: none;
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  font-size: 15px;
-  outline: none;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  font-size: 15px;
-  font-weight: bold;
-  color: white;
-  background: linear-gradient(90deg, #6d5cff, #a78bfa);
-  box-shadow: 0 0 20px rgba(123,92,255,0.5);
-}
-
-.result {
-  font-size: 18px;
-  line-height: 2;
-}
-
-.big {
-  font-size: 22px;
-  color: #a78bfa;
-  font-weight: bold;
-}
-
-.small {
-  font-size: 13px;
-  color: #888;
-}
-</style>
+<title>カード確率（拡張版）</title>
 </head>
-
 <body>
 
-<h1>KCG artist確率計算</h1>
-<div class="subtitle">artist probability tool</div>
+<h2>確率計算</h2>
 
-<div class="container">
+デッキ枚数: <input id="deck" value="60"><br>
+引きたい枚数: <input id="want" value="4"><br>
+引きたくない枚数: <input id="dont" value="6"><br>
+引く枚数: <input id="draw" value="7"><br>
 
-<div class="card">
+<button onclick="calc()">計算</button>
 
-<label>先手 / 後手</label>
-<select id="turn">
-  <option value="7">先手（7枚）</option>
-  <option value="8">後手（8枚）</option>
-</select>
-
-<p class="small">デッキ枚数：60枚（固定）</p>
-
-<label>artist総数</label>
-<input type="number" id="artist" value="0">
-
-<label>引きたいartist</label>
-<input type="number" id="good" value="0">
-
-<label>引きたくないartist</label>
-<input type="number" id="bad" value="0">
-
-<button onclick="calc()">CALCULATE</button>
-
-</div>
-
-<div class="card result" id="result">
-結果がここに表示されます
-</div>
-
-</div>
+<p id="result"></p>
 
 <script>
-function comb(n, r){
-  if(r > n || r < 0) return 0;
-  let res = 1;
-  for(let i=1;i<=r;i++){
-    res *= (n-r+i)/i;
-  }
-  return res;
+function comb(n, r) {
+    if (r > n || r < 0) return 0;
+    let res = 1;
+    for (let i = 1; i <= r; i++) {
+        res *= (n - r + i) / i;
+    }
+    return res;
 }
 
-function calc(){
+function calc() {
+    const N = parseInt(deck.value);
+    const W = parseInt(want.value);
+    const D = parseInt(dont.value);
+    const n = parseInt(draw.value);
 
-  let deck = 60;
-  let artist = +document.getElementById("artist").value;
-  let good = +document.getElementById("good").value;
-  let bad = +document.getElementById("bad").value;
-  let draw = +document.getElementById("turn").value;
+    // 引きたくないを0枚
+    const noDont = comb(N - D, n) / comb(N, n);
 
-  if(artist <= 0){
-    alert("アーティスト総数は1以上にしてください");
-    return;
-  }
+    // 引きたくない0枚かつ引きたい0枚
+    const noDontNoWant = comb(N - D - W, n) / comb(N, n);
 
-  if(artist > deck || good > artist || bad > artist || good + bad > artist){
-    alert("入力が不正です");
-    return;
-  }
+    // 条件達成確率
+    const good = noDont - noDontNoWant;
 
-  let total = comb(deck, draw);
-
-  // 分母（アーティスト1枚以上）
-  let denominator = total - comb(deck - artist, draw);
-
-  // -------- 事故率 --------
-  let accident_num = total - comb(deck - bad, draw);
-  let accident = accident_num / denominator;
-
-  // -------- good確率 --------
-  let good_num = total - comb(deck - good, draw);
-  let goodRate = good_num / denominator;
-
-  // -------- 理想 --------
-  let ideal_num =
-    comb(deck - bad, draw) - comb(deck - good - bad, draw);
-
-  let ideal = ideal_num / denominator;
-
-  document.getElementById("result").innerHTML =
-    "<div>事故率（引きたくないartistを引く）</div><div class='big'>" + (accident*100).toFixed(2) + "%</div>" +
-    "<div>引きたいartistを引く確率</div><div class='big'>" + (goodRate*100).toFixed(2) + "%</div>" +
-    "<div>理想（goodあり & badなし）</div><div class='big'>" + (ideal*100).toFixed(2) + "%</div>";
+    result.innerHTML = `
+    引きたいを1枚以上: ${(1 - comb(N-W,n)/comb(N,n) * 100).toFixed(2)}%<br>
+    引きたくないを引かない: ${(noDont*100).toFixed(2)}%<br>
+    両方達成: ${(good*100).toFixed(2)}%
+    `;
 }
 </script>
 
