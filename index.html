@@ -57,7 +57,7 @@ button {
 <body>
 
 <h1>KAMITSUBAKI TCG</h1>
-<div class="subtitle">確率ツール（引き直し対応）</div>
+<div class="subtitle">確率ツール（引き直し対応・完全版）</div>
 
 <div class="container">
 
@@ -118,24 +118,28 @@ function calc(){
   let noArtist = comb(deck - artist, draw);
   let valid = total - noArtist;
 
-  // ---------- 事故率 ----------
+  // ---------------- 事故率 ----------------
   let noBad = comb(deck - bad, draw);
   let badHit = total - noBad;
 
   let noArtist_noBad = comb(deck - artist - bad, draw);
   let accident = (badHit - (noArtist - noArtist_noBad)) / valid;
 
-  // ---------- good確率 ----------
+  // ---------------- good確率 ----------------
   let noGood = comb(deck - good, draw);
   let goodHit = total - noGood;
 
   let noArtist_noGood = comb(deck - artist - good, draw);
   let goodRate = (goodHit - (noArtist - noArtist_noGood)) / valid;
 
-  // ---------- 理想（goodあり & badなし） ----------
+  // ---------------- 理想（修正版） ----------------
   let goodNoBad = comb(deck - bad, draw) - comb(deck - good - bad, draw);
 
-  let ideal = goodNoBad / valid;
+  let noArtist_goodNoBad =
+    comb(deck - artist - bad, draw) -
+    comb(deck - artist - good - bad, draw);
+
+  let ideal = (goodNoBad - noArtist_goodNoBad) / valid;
 
   document.getElementById("result").innerHTML =
     "<div>事故率（badを引く）</div><div class='big'>" + (accident*100).toFixed(2) + "%</div>" +
