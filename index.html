@@ -2,14 +2,17 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>確率計算</title>
+<title>カード確率</title>
 </head>
 <body>
 
 <h2>60枚デッキ確率</h2>
 
 欲しいartist（60分の○）:
-<input id="target" value="4"><br>
+<input id="want" value="4"><br>
+
+引きたくないartist（60分の○）:
+<input id="dont" value="6"><br>
 
 <button onclick="calc()">計算</button>
 
@@ -27,17 +30,25 @@ function comb(n, r) {
 
 function calc() {
     const N = 60;
-    const K = parseInt(document.getElementById("target").value);
+    const W = parseInt(document.getElementById("want").value);
+    const D = parseInt(document.getElementById("dont").value);
 
     // 先手7枚
-    const p7 = 1 - comb(N - K, 7) / comb(N, 7);
+    const want7 = 1 - comb(N - W, 7) / comb(N, 7);
+    const dont7 = 1 - comb(N - D, 7) / comb(N, 7);
 
     // 後手8枚
-    const p8 = 1 - comb(N - K, 8) / comb(N, 8);
+    const want8 = 1 - comb(N - W, 8) / comb(N, 8);
+    const dont8 = 1 - comb(N - D, 8) / comb(N, 8);
 
     document.getElementById("result").innerHTML = `
-    先手（7枚）: ${(p7*100).toFixed(2)}%<br>
-    後手（8枚）: ${(p8*100).toFixed(2)}%
+    【先手（7枚）】<br>
+    欲しいを引く: ${(want7*100).toFixed(2)}%<br>
+    引きたくないを引く: ${(dont7*100).toFixed(2)}%<br><br>
+
+    【後手（8枚）】<br>
+    欲しいを引く: ${(want8*100).toFixed(2)}%<br>
+    引きたくないを引く: ${(dont8*100).toFixed(2)}%
     `;
 }
 </script>
