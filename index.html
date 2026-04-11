@@ -2,73 +2,21 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>KAMITSUBAKI TCG PROBABILITY</title>
-
-<style>
-body {
-    background: radial-gradient(circle at top, #0a0a0f, #000);
-    color: #e0e0ff;
-    font-family: sans-serif;
-    text-align: center;
-    padding: 30px;
-}
-
-h1 {
-    color: #9f7bff;
-    text-shadow: 0 0 10px #7a5cff;
-}
-
-.box {
-    background: rgba(20,20,40,0.7);
-    border: 1px solid #7a5cff;
-    border-radius: 15px;
-    padding: 20px;
-    width: 300px;
-    margin: auto;
-}
-
-input {
-    width: 80px;
-    padding: 8px;
-    margin: 10px;
-    background: #111;
-    color: white;
-    border-radius: 8px;
-    border: none;
-    text-align: center;
-}
-
-button {
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: none;
-    background: linear-gradient(135deg, #7a5cff, #4bdfff);
-    color: white;
-    cursor: pointer;
-}
-
-.result {
-    margin-top: 20px;
-    line-height: 1.8;
-}
-</style>
+<title>カード確率計算</title>
 </head>
-
 <body>
 
-<h1>KAMITSUBAKI TCG</h1>
+<h2>60枚デッキ確率</h2>
 
-<div class="box">
-    欲しいartist（60分の○）<br>
-    <input id="want" value="4"><br>
+欲しいartist（60分の○）:
+<input id="want" value="4"><br>
 
-    引きたくないartist（60分の○）<br>
-    <input id="dont" value="6"><br>
+引きたくないartist（60分の○）:
+<input id="dont" value="6"><br>
 
-    <button onclick="calc()">CALCULATE</button>
+<button onclick="calc()">計算</button>
 
-    <div id="result" class="result"></div>
-</div>
+<p id="result"></p>
 
 <script>
 function comb(n, r) {
@@ -82,8 +30,8 @@ function comb(n, r) {
 
 function calc() {
     const N = 60;
-    const W = parseInt(want.value);
-    const D = parseInt(dont.value);
+    const W = parseInt(document.getElementById("want").value);
+    const D = parseInt(document.getElementById("dont").value);
 
     function calcAll(n) {
         const wantHit = 1 - comb(N - W, n) / comb(N, n);
@@ -96,7 +44,7 @@ function calc() {
     const s = calcAll(7);
     const g = calcAll(8);
 
-    result.innerHTML = `
+    document.getElementById("result").innerHTML = `
     【先手（7枚）】<br>
     欲しいを引く: ${(s.wantHit*100).toFixed(2)}%<br>
     引きたくないを引く: ${(s.dontHit*100).toFixed(2)}%<br>
