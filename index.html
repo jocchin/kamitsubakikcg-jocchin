@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神椿TCG 確率ツール 完全版</title>
+<title>神椿TCG 確率ツール</title>
 
 <style>
 body {
@@ -12,52 +12,106 @@ body {
   background: radial-gradient(circle at 20% 0%, #1a1a2e, #05050a 70%);
   color: #eee;
 }
+
 * { box-sizing: border-box; }
 
-h1 { text-align:center; margin:30px 0 10px; color:#d4ccff; }
-.subtitle { text-align:center; font-size:12px; color:#777; margin-bottom:20px; }
-
-.container { max-width:420px; margin:auto; padding:15px; }
-
-.card {
-  background:rgba(255,255,255,0.04);
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:16px;
+h1 {
+  text-align: center;
+  margin: 30px 0 10px;
+  font-size: 24px;
+  color: #d4ccff;
+  letter-spacing: 2px;
 }
 
-label { font-size:12px; color:#888; }
+.subtitle {
+  text-align: center;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 20px;
+}
 
-select,input {
-  width:100%;
-  padding:12px;
-  margin:6px 0 14px;
-  border-radius:12px;
-  border:none;
-  background:rgba(255,255,255,0.08);
-  color:#fff;
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 15px;
+}
+
+.card {
+  background: rgba(255,255,255,0.04);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 25px rgba(123,92,255,0.08);
+}
+
+label {
+  font-size: 12px;
+  color: #888;
+}
+
+select, input {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0 14px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 15px;
+  outline: none;
 }
 
 button {
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:none;
-  font-weight:bold;
-  color:white;
-  background:linear-gradient(90deg,#6d5cff,#a78bfa);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(90deg, #6d5cff, #a78bfa);
+  box-shadow: 0 0 20px rgba(123,92,255,0.5);
 }
 
-.result { font-size:18px; line-height:2; }
+button:active {
+  transform: scale(0.96);
+}
 
-.big { font-size:22px; color:#a78bfa; font-weight:bold; }
+.result {
+  font-size: 18px;
+  line-height: 2;
+}
+
+.fade {
+  animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.big {
+  font-size: 22px;
+  color: #a78bfa;
+  font-weight: bold;
+}
+
+.small {
+  font-size: 13px;
+  color: #888;
+}
 </style>
 </head>
 
 <body>
 
-<h1>KAMITSUBAKI TCG</h1>
-<div class="subtitle">確率ツール（引き直し対応・完全版）</div>
+<h1>KCG artist確率計算</h1>
+<div class="subtitle">artist probability tool</div>
 
 <div class="container">
 
@@ -69,15 +123,15 @@ button {
   <option value="8">後手（8枚）</option>
 </select>
 
-<p>デッキ枚数：60枚</p>
+<p class="small">デッキ枚数：60枚（固定）</p>
 
-<label>アーティスト総数</label>
-<input type="number" id="artist" value="20">
+<label>artist総数</label>
+<input type="number" id="artist" value="0">
 
-<label>引きたいアーティスト（good）</label>
-<input type="number" id="good" value="4">
+<label>引きたいartist</label>
+<input type="number" id="good" value="0">
 
-<label>引きたくないアーティスト（bad）</label>
+<label>引きたくないartist</label>
 <input type="number" id="bad" value="0">
 
 <button onclick="calc()">CALCULATE</button>
@@ -107,6 +161,11 @@ function calc(){
   let bad = +document.getElementById("bad").value;
   let draw = +document.getElementById("turn").value;
 
+  if(artist <= 0){
+    alert("アーティスト総数は1以上にしてください");
+    return;
+  }
+
   if(artist > deck || good > artist || bad > artist || good + bad > artist){
     alert("入力が不正です");
     return;
@@ -114,37 +173,32 @@ function calc(){
 
   let total = comb(deck, draw);
 
-  // アーティスト0枚（引き直し対象）
   let noArtist = comb(deck - artist, draw);
   let valid = total - noArtist;
 
-  // ---------------- 事故率 ----------------
+  // 事故率
   let noBad = comb(deck - bad, draw);
   let badHit = total - noBad;
-
   let noArtist_noBad = comb(deck - artist - bad, draw);
   let accident = (badHit - (noArtist - noArtist_noBad)) / valid;
 
-  // ---------------- good確率 ----------------
+  // good確率
   let noGood = comb(deck - good, draw);
   let goodHit = total - noGood;
-
   let noArtist_noGood = comb(deck - artist - good, draw);
   let goodRate = (goodHit - (noArtist - noArtist_noGood)) / valid;
 
-  // ---------------- 理想（修正版） ----------------
+  // 理想
   let goodNoBad = comb(deck - bad, draw) - comb(deck - good - bad, draw);
-
   let noArtist_goodNoBad =
     comb(deck - artist - bad, draw) -
     comb(deck - artist - good - bad, draw);
-
   let ideal = (goodNoBad - noArtist_goodNoBad) / valid;
 
   document.getElementById("result").innerHTML =
-    "<div>事故率（badを引く）</div><div class='big'>" + (accident*100).toFixed(2) + "%</div>" +
-    "<div>goodを引く確率</div><div class='big'>" + (goodRate*100).toFixed(2) + "%</div>" +
-    "<div>理想（goodあり & badなし）</div><div class='big'>" + (ideal*100).toFixed(2) + "%</div>";
+    "<div class='fade'>事故率（引きたくないartistを引く）</div><div class='big fade'>" + (accident*100).toFixed(2) + "%</div>" +
+    "<div class='fade'>引きたいartistを引く確率</div><div class='big fade'>" + (goodRate*100).toFixed(2) + "%</div>" +
+    "<div class='fade'>理想（引きたいあり & 引きたくないなし）</div><div class='big fade'>" + (ideal*100).toFixed(2) + "%</div>";
 }
 </script>
 
