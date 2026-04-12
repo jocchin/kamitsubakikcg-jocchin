@@ -6,12 +6,18 @@
 </head>
 <body>
 
-<h2>60枚デッキ確率</h2>
+<h2>カード確率計算</h2>
 
-欲しいartist（60分の○）:
+デッキ枚数:
+<input id="deck" value="60"><br>
+
+手札枚数:
+<input id="draw" value="7"><br>
+
+欲しいカード（○枚）:
 <input id="want" value="0"><br>
 
-引きたくないartist（60分の○）:
+欲しくないカード（○枚）:
 <input id="dont" value="0"><br>
 
 <button onclick="calc()">計算</button>
@@ -29,31 +35,20 @@ function comb(n, r) {
 }
 
 function calc() {
-    const N = 60;
+    const N = parseInt(document.getElementById("deck").value);
+    const n = parseInt(document.getElementById("draw").value);
     const W = parseInt(document.getElementById("want").value);
     const D = parseInt(document.getElementById("dont").value);
 
-    function calcAll(n) {
-        const wantHit = 1 - comb(N - W, n) / comb(N, n);
-        const dontHit = 1 - comb(N - D, n) / comb(N, n);
-        const neither = comb(N - W - D, n) / comb(N, n);
-
-        return { wantHit, dontHit, neither };
-    }
-
-    const s = calcAll(7);
-    const g = calcAll(8);
+    const wantHit = 1 - comb(N - W, n) / comb(N, n);
+    const dontHit = 1 - comb(N - D, n) / comb(N, n);
+    const neither = comb(N - W - D, n) / comb(N, n);
 
     document.getElementById("result").innerHTML = `
-    【先手（7枚）】<br>
-    欲しいを引く: ${(s.wantHit*100).toFixed(2)}%<br>
-    引きたくないを引く: ${(s.dontHit*100).toFixed(2)}%<br>
-    どっちも引かない: ${(s.neither*100).toFixed(2)}%<br><br>
-
-    【後手（8枚）】<br>
-    欲しいを引く: ${(g.wantHit*100).toFixed(2)}%<br>
-    引きたくないを引く: ${(g.dontHit*100).toFixed(2)}%<br>
-    どっちも引かない: ${(g.neither*100).toFixed(2)}%
+    手札 ${n}枚 の場合<br><br>
+    欲しいを引く: ${(wantHit*100).toFixed(2)}%<br>
+    欲しくないを引く: ${(dontHit*100).toFixed(2)}%<br>
+    どっちも引かない: ${(neither*100).toFixed(2)}%
     `;
 }
 </script>
